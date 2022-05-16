@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "391329742845",
+    "firebase_url": "https://tesattendancey3-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "tesattendancey3",
+    "storage_bucket": "tesattendancey3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391329742845:android:2dd1f6a25e3da098736394",
+        "android_client_info": {
+          "package_name": "com.example.tesattendancey3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "391329742845-rj1j5bpmg3boprbkrj5g700a2th6i862.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAK3clJNPLzTOR7l0rhLa6Tb2sXHMuQ1uc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "391329742845-rj1j5bpmg3boprbkrj5g700a2th6i862.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

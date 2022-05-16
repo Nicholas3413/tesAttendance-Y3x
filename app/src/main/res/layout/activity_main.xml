@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.tesattendancey3.MainViewModel" />
+        <variable
+            name="contract"
+            type="com.example.tesattendancey3.MainCallBack" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:background="@color/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+        <Button
+            android:id="@+id/actions"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="ACTIONS"
+            android:textColor="@color/white"
+            android:onClick="@{() -> contract.onActionClick()}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+
+            app:layout_constraintVertical_bias="0.25" />
+        <FrameLayout
+            android:id="@+id/container"
+            android:layout_width="297dp"
+            android:layout_height="500dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.09">
+            <ImageView
+                android:id="@+id/face_preview"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="#2C7E57C2"
+                android:visibility="@{viewModel.facePreviewVisibility, default=`visible`}"
+                android:elevation="1dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/container"
+                app:layout_constraintVertical_bias="0.435"
+                tools:srcCompat="@android:drawable/screen_background_light_transparent" />
+            <Button
+                android:id="@+id/camera_switch"
+                android:onClick="@{() -> contract.onCameraSwitchClick()}"
+                android:layout_width="68dp"
+                android:layout_height="65dp"
+                android:layout_marginStart="229dp"
+                android:layout_marginEnd="229dp"
+                android:textColor="@color/btnColor"
+                android:layout_marginRight="229dp"
+                android:background="@drawable/camera"
+                android:backgroundTint="@color/teal_200"
+                android:elevation="1dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:layout_conversion_absoluteHeight="63dp"
+                tools:layout_conversion_absoluteWidth="62dp" />
+
+            <androidx.camera.view.PreviewView
+                android:id="@+id/previewView"
+                android:layout_width="match_parent"
+                android:layout_height="500dp">
+
+            </androidx.camera.view.PreviewView>
+        </FrameLayout>
+
+
+        <ImageButton
+            android:id="@+id/add_face"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="336dp"
+            android:layout_marginBottom="56dp"
+            android:elevation="2dp"
+            android:onClick="@{() -> contract.onAddFaceClick()}"
+            android:visibility="@{viewModel.addFaceVisibility, default=`invisible`}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@android:drawable/ic_input_add" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/container">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0/3"
+                android:textSize="30sp"
+                android:id="@+id/textSavedRecog"/>
+
+            <Button
+                android:id="@+id/btnRegisterMukaUntukSave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tambah Muka" />
+
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/recognize"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:background="@color/golden"
+            android:onClick="@{() -> contract.onRecognizeClick()}"
+            android:rotation="0"
+            android:rotationX="0"
+            android:rotationY="0"
+            android:text="@{viewModel.recognizeText, default =`Add Face`}"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/actions"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

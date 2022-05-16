@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".BuatPerusahaan">
+
+    <EditText
+        android:id="@+id/textNamaPerusahaan"
+        android:layout_width="0dp"
+        android:hint="Nama Perusahaan"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="96dp"
+        android:inputType="text"
+        android:selectAllOnFocus="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Jam Masuk :"
+        android:textSize="22sp"
+        android:paddingVertical="7dp"
+        android:paddingLeft="2dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textNamaPerusahaan"
+        android:id="@+id/textJamMasuk"/>
+    <TextView
+        android:layout_width="100sp"
+        android:layout_height="wrap_content"
+        android:id="@+id/selectedJamMasuk"
+        android:paddingVertical="7dp"
+        android:gravity="center"
+        android:textSize="22sp"
+        app:layout_constraintStart_toEndOf="@id/textJamMasuk"
+        app:layout_constraintTop_toBottomOf="@+id/textNamaPerusahaan"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select"
+        android:id="@+id/selectJamMasuk"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textNamaPerusahaan"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Jam Pulang :"
+        android:textSize="22sp"
+        android:paddingVertical="7dp"
+        android:paddingLeft="2dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textJamMasuk"
+        android:id="@+id/textJamPulang"/>
+    <TextView
+        android:layout_width="100sp"
+        android:layout_height="wrap_content"
+        android:id="@+id/selectedJamPulang"
+        android:paddingVertical="7dp"
+        android:gravity="center"
+        android:textSize="22sp"
+        app:layout_constraintStart_toEndOf="@id/textJamPulang"
+        app:layout_constraintTop_toBottomOf="@+id/textJamMasuk"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select"
+        android:id="@+id/selectJamPulang"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textJamMasuk"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnRegisterPerusahaan"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="Register Perusahaan"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
