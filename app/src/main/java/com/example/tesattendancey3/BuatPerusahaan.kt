@@ -1,6 +1,9 @@
 package com.example.tesattendancey3
 
 import android.app.TimePickerDialog
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -56,8 +59,14 @@ class BuatPerusahaan : AppCompatActivity() {
             writeNewPerusahaan(userID,textNamaPerusahaan.getText().toString(),totjammasuk.toLong(),totjampulang.toLong())
             finish()
         }
+        btnKeMap.setOnClickListener {
+            var intent= Intent(this,MapActivity::class.java)
+            startActivity(intent)
+        }
 
     }
+
+
     fun writeNewPerusahaan(userId: String, name: String,jam_masuk: Long?,jam_pulang: Long? ) {
         database = Firebase.database.reference
         val charPool : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
@@ -70,13 +79,21 @@ class BuatPerusahaan : AppCompatActivity() {
         Log.v("randomstring",randomstring)
 //        val random1 = (0..100).shuffled().last()
 
-        val perusahaan = Perusahaan(name,jam_masuk,jam_pulang,randomstring,userId)
+
 //        database.child(userId).child("Perusahaan").setValue(perusahaan)
+        val sharedPreferences = getSharedPreferences("Location", Context.MODE_PRIVATE)
+        var loclapos=sharedPreferences.getString("new_latitude_pos","")
+        var loclamin=sharedPreferences.getString("new_latitude_min","")
+        var loclongpos=sharedPreferences.getString("new_longitude_pos","")
+        var loclongmin=sharedPreferences.getString("new_longitude_min","")
+        Log.v("4loc",loclapos.toString()+loclamin.toString()+loclongpos.toString()+loclongmin.toString())
+        val perusahaan = Perusahaan(name,jam_masuk,jam_pulang,randomstring,userId,loclapos,loclamin,loclongpos,loclongmin)
         database.child(randomstring).setValue(perusahaan)
         database.child(userId).child("perusahaan_id").setValue(randomstring)
     }
     @IgnoreExtraProperties
     data class Perusahaan(val nama_perusahaan: String? = null, val jam_masuk: Long? = null, val jam_pulang: Long? = null,
-                          val inv_code:String?=null, val pemilik_id:String?=null) {
+                          val inv_code:String?=null, val pemilik_id:String?=null,val loclapos:String?=null,val loclamin:String?=null
+                          ,val loclongpos:String?=null,val loclongmin:String?=null) {
     }
 }

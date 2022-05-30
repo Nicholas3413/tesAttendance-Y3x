@@ -79,6 +79,13 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="Select Map"
+        android:id="@+id/btnKeMap"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textJamPulang"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/btnRegisterPerusahaan"
         app:layout_constraintStart_toStartOf="parent"
         android:text="Register Perusahaan"

@@ -4,11 +4,14 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.RectF
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.util.Pair
 import android.widget.Toast
@@ -20,12 +23,17 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import com.example.tesattendancey3.SimilarityClassifier.Recognition
 import com.example.tesattendancey3.databinding.ActivityMainBinding
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.firebase.auth.FirebaseAuth
@@ -68,6 +76,9 @@ class MainActivity : AppCompatActivity(), MainCallBack {
     private lateinit var tanggal:String
 
 
+    private var fusedLocationProviderClient: FusedLocationProviderClient? = null
+    private lateinit var locationRequest: LocationRequest
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,10 +116,89 @@ class MainActivity : AppCompatActivity(), MainCallBack {
         }.addOnFailureListener{
             Log.e("timestampfromdatabase", "Error getting data", it)
         }
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        locationRequest = LocationRequest.create()
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        locationRequest.setInterval(5000)
+        locationRequest.setFastestInterval(1000)
+        val locationCallback: LocationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                if (locationResult != null) {
+                    if (locationResult == null) {
+                        return
+                    }
+                    //Showing the latitude, longitude and accuracy on the home screen.
+                    for (location in locationResult.locations) {
+                        Log.v("newlocation","Lat: ${location.latitude} Long: ${location.longitude} Accuracy: ${location.accuracy}")
+                        database = Firebase.database.reference
+                        var userID=Firebase.auth.currentUser?.uid.toString()
+                        if (loclongmin != null && loclamin != null && loclapos != null && loclongpos != null) {
+                            if (location.latitude < loclapos!!.toDouble() && location.latitude > loclamin!!.toDouble()
+                                && location.longitude < loclongpos!!.toDouble() && location.longitude > loclongmin!!.toDouble()
+                            ) {
+                                database.child(userID).child("perusahaan_id").get().addOnSuccessListener {
+                                    perusahaanID=it.value.toString()
+                                    database.child(it.value.toString())
+                                        .child("absensi").child(tanggal).child(userID)
+                                        .child("lokasi")
+                                        .setValue(location.latitude.toString() + "," + location.longitude.toString())
+                                    database.child(it.value.toString())
+                                        .child("absensi").child(tanggal).child(userID)
+                                        .child("ceklokasi")
+                                        .setValue("berada pada lokasi")
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "Sudah Berada di Lokasi Perusahaan",
+                                        Toast.LENGTH_SHORT)
+                                    Log.v("perusahaanid",perusahaanID.toString())
+                                }.addOnFailureListener{
+                                    Log.e("perusahaanid", "Error getting data", it)
+                                }
+
+
+                            } else {
+                                database.child(userID).child("perusahaan_id").get().addOnSuccessListener {
+                                    database.child(it.value.toString())
+                                        .child("absensi").child(tanggal)
+                                        .child(userID)
+                                        .child("lokasi")
+                                        .setValue(location.latitude.toString() + "," + location.longitude.toString())
+                                    database.child(it.value.toString())
+                                        .child("absensi").child(tanggal)
+                                        .child(userID)
+                                        .child("ceklokasi")
+                                        .setValue("tidak pada lokasi")
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        "Tidak Berada di Lokasi Perusahaan",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                }.addOnFailureListener{
+                                    Log.e("perusahaanid", "Error getting data", it)
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+        fusedLocationProviderClient?.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+
     }
 
     override fun onStart() {
         super.onStart()
+//        val intentextra:String = intent.getStringExtra("action").toString()
+//        if(intentextra=="1"){
+//            cekLocation()
+//        }
+
 //        val preferences = getSharedPreferences("HashMap", 0)
 //        preferences.edit().remove("map").apply()
 //        val sharedPreferences = getSharedPreferences("HashMap", Context.MODE_PRIVATE)
@@ -323,8 +413,12 @@ class MainActivity : AppCompatActivity(), MainCallBack {
         val inputArray = arrayOf<Any>(imgData)
         val outputMap: MutableMap<Int, Any> = HashMap()
         embeddings = Array(1) { FloatArray(OUTPUT_SIZE) }
+        Log.v("xtesimgdatajjjj",imgData.toString())
+        Log.v("xtesimgdataeeee",embeddings[0][0].toString())
         outputMap[0] = embeddings
+        Log.v("xtesimgdataeeooo", outputMap[0].toString())
         tfLite!!.runForMultipleInputsOutputs(inputArray, outputMap)
+        Log.v("xtesimgdataeeeex",embeddings[0][0].toString())
         val intentextra:String = intent.getStringExtra("action").toString()
         if(intentextra=="1"){
             val distance: Float
@@ -366,6 +460,169 @@ class MainActivity : AppCompatActivity(), MainCallBack {
             }
         }
     }
+
+    private fun cekLocation(){
+        database = Firebase.database.reference
+        var userID=Firebase.auth.currentUser?.uid.toString()
+        database.child(userID).child("perusahaan_id").get().addOnSuccessListener {
+            perusahaanID=it.value.toString()
+            database.child(perusahaanID).get().addOnSuccessListener {
+                loclapos=it.child("loclapos").value.toString().toDouble()
+                loclamin=it.child("loclamin").value.toString().toDouble()
+                loclongpos=it.child("loclongpos").value.toString().toDouble()
+                loclongmin=it.child("loclongmin").value.toString().toDouble()
+            }.addOnFailureListener {
+                Log.e("perusahaanID", "Error getting data", it)
+            }
+            Log.v("perusahaanid",perusahaanID.toString())
+        }.addOnFailureListener{
+            Log.e("perusahaanid", "Error getting data", it)
+        }
+
+        locationRequest = LocationRequest.create()
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        locationRequest.setInterval(100)
+        locationRequest.setFastestInterval(50)
+        getCurrentLocation()
+    }
+
+    private lateinit var perusahaanID:String
+    private var loclapos:Double?=0.00
+    private var loclamin:Double?=0.00
+    private var loclongpos:Double?=0.00
+    private var loclongmin:Double?=0.00
+    private fun getCurrentLocation() {
+        database = Firebase.database.reference
+        var userID=Firebase.auth.currentUser?.uid.toString()
+
+//        database.child(perusahaanID!!).get().addOnSuccessListener {
+//            loclapos=it.child("loclapos").value.toString().toDouble()
+//            loclamin=it.child("loclamin").value.toString().toDouble()
+//            loclongpos=it.child("loclongpos").value.toString().toDouble()
+//            loclongmin=it.child("loclongmin").value.toString().toDouble()
+//        }.addOnFailureListener {
+//            Log.e("perusahaanID", "Error getting data", it)
+//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(
+                    this@MainActivity,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                if (isGPSEnabled()) {
+                    LocationServices.getFusedLocationProviderClient(this@MainActivity)
+                        .requestLocationUpdates(locationRequest, object : LocationCallback() {
+                            override fun onLocationResult(locationResult: LocationResult) {
+                                super.onLocationResult(locationResult)
+                                LocationServices.getFusedLocationProviderClient(this@MainActivity)
+                                    .removeLocationUpdates(this)
+                                if (locationResult != null && locationResult.locations.size > 0) {
+                                    val index = locationResult.locations.size - 1
+                                    val latitude = locationResult.locations[index].latitude
+                                    val longitude = locationResult.locations[index].longitude
+                                    try {
+                                        if (loclongmin != null && loclamin != null && loclapos != null && loclongpos != null) {
+                                            if (latitude < loclapos!!.toDouble() && latitude > loclamin!!.toDouble()
+                                                && longitude < loclongpos!!.toDouble() && longitude > loclongmin!!.toDouble()
+                                            ) {
+                                                database.child(userID).child("perusahaan_id").get().addOnSuccessListener {
+                                                    perusahaanID=it.value.toString()
+                                                    database.child(perusahaanID.toString())
+                                                        .child("absensi").child(tanggal).child(userID)
+                                                        .child("lokasi")
+                                                        .setValue(latitude.toString() + "," + longitude.toString())
+                                                    database.child(perusahaanID.toString())
+                                                        .child("absensi").child(tanggal).child(userID)
+                                                        .child("ceklokasi")
+                                                        .setValue("berada pada lokasi")
+                                                    Toast.makeText(
+                                                        this@MainActivity,
+                                                        "Sudah Berada di Lokasi Perusahaan",
+                                                        Toast.LENGTH_SHORT)
+                                                    Log.v("perusahaanid",perusahaanID.toString())
+                                                }.addOnFailureListener{
+                                                    Log.e("perusahaanid", "Error getting data", it)
+                                                }
+
+
+                                            } else {
+                                                database.child(userID).child("perusahaan_id").get().addOnSuccessListener {
+                                                    database.child(perusahaanID.toString())
+                                                        .child("absensi").child(tanggal)
+                                                        .child(userID)
+                                                        .child("lokasi")
+                                                        .setValue(latitude.toString() + "," + longitude.toString())
+                                                    database.child(perusahaanID.toString())
+                                                        .child("absensi").child(tanggal)
+                                                        .child(userID)
+                                                        .child("ceklokasi")
+                                                        .setValue("tidak pada lokasi")
+                                                    Toast.makeText(
+                                                        this@MainActivity,
+                                                        "Tidak Berada di Lokasi Perusahaan",
+                                                        Toast.LENGTH_SHORT
+                                                    )
+                                                }.addOnFailureListener{
+                                                    Log.e("perusahaanid", "Error getting data", it)
+                                                }
+                                            }
+                                        }
+                                    }catch(e:NumberFormatException)
+                                    {
+
+                                        Log.e("numberformatnull",e.toString())
+                                    }
+                                }
+                            }
+                        }, Looper.getMainLooper())
+                } else {
+                    turnOnGPS()
+                }
+            } else {
+                requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+            }
+        }
+    }
+    private fun isGPSEnabled(): Boolean {
+        var locationManager: LocationManager? = null
+        var isEnabled = false
+        if (locationManager == null) {
+            locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        }
+        isEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        return isEnabled
+    }
+    private fun turnOnGPS() {
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+        builder.setAlwaysShow(true)
+        val result: Task<LocationSettingsResponse> = LocationServices.getSettingsClient(
+            applicationContext
+        )
+            .checkLocationSettings(builder.build())
+        result.addOnCompleteListener(OnCompleteListener<LocationSettingsResponse?> { task ->
+            try {
+                val response = task.getResult(ApiException::class.java)
+                Toast.makeText(this@MainActivity, "GPS is already tured on", Toast.LENGTH_SHORT)
+                    .show()
+            } catch (e: ApiException) {
+                when (e.statusCode) {
+                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> try {
+                        val resolvableApiException = e as ResolvableApiException
+                        resolvableApiException.startResolutionForResult(this@MainActivity, 2)
+                    } catch (ex: IntentSender.SendIntentException) {
+                        ex.printStackTrace()
+                    }
+                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {}
+                }
+            }
+        })
+    }
+
+
+
+
+
     private fun getDate(time: Long): String {
         val format = "dd MMM yyyy" // you can add the format you need
         val sdf = SimpleDateFormat(format, Locale.getDefault()) // default local
@@ -455,6 +712,15 @@ class MainActivity : AppCompatActivity(), MainCallBack {
                 Toast.makeText(this, "Camera permission granted", Toast.LENGTH_LONG).show()
             } else {
                 Toast.makeText(this, "Camera permission denied", Toast.LENGTH_LONG).show()
+            }
+        }
+        if (requestCode == 1) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (isGPSEnabled()) {
+                    getCurrentLocation()
+                } else {
+                    turnOnGPS()
+                }
             }
         }
     }
